@@ -21,6 +21,5 @@ endfunction
 call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 
 call remote#host#RegisterPlugin('win-container', '0', [
-\ {'type': 'function', 'name': 'Buffers', 'sync': 1, 'opts': {}},
-\ {'type': 'function', 'name': 'Hello', 'sync': 1, 'opts': {}},
+\ {'type': 'function', 'name': 'NewContainer', 'sync': 1, 'opts': {}},
 \ ])

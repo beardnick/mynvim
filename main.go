@@ -1,40 +1,32 @@
 package main
 
 import (
-	"strings"
+	"win-container/buffer"
+	"win-container/container"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
 )
 
-func Buffers(nvm *nvim.Nvim, args []string) (string, error) {
-	bufs, err := nvm.Buffers()
+func NewContainer(nvm *nvim.Nvim, args []string) error {
+	c := container.Container{
+		Nvm:      nvm,
+		Position: "botright",
+		Height:   20,
+	}
+	bufs, err := buffer.BufferOfType(nvm, "vim")
 	if err != nil {
-		return "", err
+		return err
 	}
-	results := []string{}
-	for _, b := range bufs {
-		name, err := nvm.BufferName(b)
-		if err != nil {
-			return "", err
-		}
-		results = append(results, name)
-	}
-	return strings.Join(results, ";"), nil
-}
-
-func hello(args []string) (string, error) {
-	return "Hello " + strings.Join(args, " "), nil
-}
-
-func NvimConnect(addr string) (conn *nvim.Nvim, err error) {
-	return nvim.Dial(addr, []nvim.DialOption{}...)
+	c.PushBufs(bufs...)
+	return c.Show()
 }
 
 func main() {
 	plugin.Main(func(p *plugin.Plugin) error {
-		p.HandleFunction(&plugin.FunctionOptions{Name: "Hello"}, hello)
-		p.HandleFunction(&plugin.FunctionOptions{Name: "Buffers"}, Buffers)
+		//p.HandleFunction(&plugin.FunctionOptions{Name: "Hello"}, hello)
+		//p.HandleFunction(&plugin.FunctionOptions{Name: "Buffers"}, Buffers)
+		p.HandleFunction(&plugin.FunctionOptions{Name: "NewContainer"}, NewContainer)
 		return nil
 	})
 }
