@@ -129,8 +129,8 @@ func (c *Container) Hide() (err error) {
 	return
 }
 
-func (c *Container) Show() error {
-	_, err := c.Nvm.Exec(
+func (c *Container) Show() (err error) {
+	_, err = c.Nvm.Exec(
 		fmt.Sprintf("%s %d split", c.Position, c.Height),
 		false,
 	)
@@ -138,7 +138,7 @@ func (c *Container) Show() error {
 		return err
 	}
 	length := len(c.bufs)
-	err := c.Nvm.SetCurrentBuffer(c.bufs[0])
+	err = c.Nvm.SetCurrentBuffer(c.bufs[0])
 	if err != nil {
 		return
 	}
