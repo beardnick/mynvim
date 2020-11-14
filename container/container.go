@@ -2,8 +2,10 @@ package container
 
 import (
 	"fmt"
+	"github.com/beardnick/mynvim/check"
 	nvimutil "github.com/beardnick/mynvim/nvimutil"
 	"github.com/neovim/go-client/nvim"
+	"strconv"
 )
 
 var (
@@ -29,14 +31,10 @@ func (c *Container) PushBufs(buffer ...nvim.Buffer) {
 }
 
 func (c *Container) CreateEval(eval string) (err error) {
-	_, err = c.Nvm.Exec(
-		fmt.Sprintf("%s %d split", c.Position, c.Height),
-		false,
-	)
-	if err != nil {
-		return err
-	}
-	_, err = c.Nvm.Exec(eval, false)
+	b := c.Nvm.NewBatch()
+	b.Command(fmt.Sprintf("%s %d split", c.Position, c.Height))
+	b.Command(eval)
+	err = b.Execute()
 	if err != nil {
 		return
 	}
@@ -46,55 +44,36 @@ func (c *Container) CreateEval(eval string) (err error) {
 		return
 	}
 	c.bufs = append(c.bufs, buffer)
+	container_exists = true
 	return
 }
 
 func (c *Container) PushBufEval(eval string) (err error) {
+	nvimutil.Echomsg(c.Nvm, eval)
+	nvimutil.Echomsg(c.Nvm, c.bufs)
 	if len(c.bufs) == 0 {
 		return c.CreateEval(eval)
 	}
-	if !container_exists && len(c.bufs) > 0 {
+	if !container_exists {
 		err = c.Show()
 		if err != nil {
 			return
 		}
 	}
-	if !container_exists && len(c.bufs) == 0 {
-		_, err := c.Nvm.Exec(
-			fmt.Sprintf("%s %d split", c.Position, c.Height),
-			false,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	nvimutil.Echomsg(c.Nvm, eval)
-	if len(c.bufs) == 0 {
-	}
-	err = c.Nvm.SetCurrentBuffer(c.bufs[len(c.bufs)-1])
+	win, err := nvimutil.Bufwinnr(c.Nvm, int(c.bufs[len(c.bufs)-1]))
 	if err != nil {
 		return
 	}
-	_, err = c.Nvm.Exec(
-		fmt.Sprintf("wincmd v"),
-		false,
-	)
+	b := c.Nvm.NewBatch()
+	b.Command(fmt.Sprintf("%dwincmd w", win))
+	b.Command("wincmd v")
+	b.Command("wincmd l")
+	b.Command(eval)
+	err = b.Execute()
 	if err != nil {
 		return err
-	}
-	_, err = c.Nvm.Exec(
-		fmt.Sprintf("wincmd l"),
-		false,
-	)
-	if err != nil {
-		return err
-	}
-	_, err = c.Nvm.Exec(eval, false)
-	if err != nil {
-		return
 	}
 	buffer, err := c.Nvm.CurrentBuffer()
-	nvimutil.Echomsg(c.Nvm, buffer)
 	if err != nil {
 		return
 	}
@@ -103,36 +82,10 @@ func (c *Container) PushBufEval(eval string) (err error) {
 }
 
 func (c *Container) PushBuf(buffer nvim.Buffer) (err error) {
-	if container_exists {
-		err = c.Show()
-		if err != nil {
-			return
-		}
-	}
-	err = c.Nvm.SetCurrentBuffer(c.bufs[len(c.bufs)-1])
-	if err != nil {
+	if check.ContainsBuffer(c.bufs, buffer) {
 		return
 	}
-	_, err = c.Nvm.Exec(
-		fmt.Sprintf("wincmd v"),
-		false,
-	)
-	if err != nil {
-		return err
-	}
-	_, err = c.Nvm.Exec(
-		fmt.Sprintf("wincmd l"),
-		false,
-	)
-	if err != nil {
-		return err
-	}
-	err = c.Nvm.SetCurrentBuffer(buffer)
-	if err != nil {
-		return err
-	}
-	c.bufs = append(c.bufs, buffer)
-	return
+	return c.PushBufEval(fmt.Sprintf("%dbuffer", int(buffer)))
 }
 
 func (c *Container) PopBuf() {
@@ -185,23 +138,16 @@ func (c *Container) Show() error {
 		return err
 	}
 	length := len(c.bufs)
-	c.Nvm.SetCurrentBuffer(c.bufs[0])
+	err := c.Nvm.SetCurrentBuffer(c.bufs[0])
+	if err != nil {
+		return
+	}
+	b := c.Nvm.NewBatch()
 	for i := 1; i < length; i++ {
-		_, err := c.Nvm.Exec(
-			fmt.Sprintf("wincmd v"),
-			false,
-		)
-		if err != nil {
-			return err
-		}
-		_, err = c.Nvm.Exec(
-			fmt.Sprintf("wincmd l"),
-			false,
-		)
-		if err != nil {
-			return err
-		}
-		err = c.Nvm.SetCurrentBuffer(c.bufs[i])
+		b.Command("wincmd v")
+		b.Command("wincmd l")
+		b.SetCurrentBuffer(c.bufs[i])
+		err = b.Execute()
 		if err != nil {
 			return err
 		}
@@ -214,7 +160,10 @@ func PushBuf(nvm *nvim.Nvim, args []string) (err error) {
 		global_container.Nvm = nvm
 	}
 	for _, arg := range args {
-		//nvimutil.Echomsg(nvm,arg)
+		if buf, err := strconv.Atoi(arg); err == nil {
+			global_container.PushBuf(nvim.Buffer(buf))
+			continue
+		}
 		err = global_container.PushBufEval(arg)
 		if err != nil {
 			return
