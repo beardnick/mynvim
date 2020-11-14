@@ -1,4 +1,4 @@
-module win-container
+module mynvim
 
 go 1.14
 

@@ -2,7 +2,7 @@
 all:build manifest
 
 build:
-	go build -v -o bin/win-container .
+	go build -v -o bin/mynvim
 
 manifest:
-	$(CURDIR)/bin/win-container -manifest win-container -location $(CURDIR)/plugin/plugin.vim
+	$(CURDIR)/bin/mynvim -manifest mynvim  -location $(CURDIR)/plugin/plugin.vim
