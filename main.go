@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mynvim/buffer"
-	"mynvim/container"
+	"github.com/beardnick/mynvim/buffer"
+	"github.com/beardnick/mynvim/container"
 
 	"github.com/neovim/go-client/nvim"
 	"github.com/neovim/go-client/nvim/plugin"
