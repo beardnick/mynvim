@@ -85,6 +85,14 @@ func (c *Container) PushBuf(buffer nvim.Buffer) (err error) {
 	if check.ContainsBuffer(c.bufs, buffer) {
 		return
 	}
+	win, err := nvimutil.Bufwinnr(c.Nvm, int(buffer))
+	if err != nil {
+		return err
+	}
+	err = c.Nvm.Command(fmt.Sprintf("%vhide", win))
+	if err != nil {
+		return err
+	}
 	return c.PushBufEval(fmt.Sprintf("%dbuffer", int(buffer)))
 }
 
@@ -120,7 +128,7 @@ func (c *Container) Hide() (err error) {
 		if err != nil {
 			return err
 		}
-		_, err = c.Nvm.Exec(fmt.Sprintf("%vhide", win), false)
+		err = c.Nvm.Command(fmt.Sprintf("%vhide", win))
 		if err != nil {
 			return err
 		}
@@ -135,7 +143,7 @@ func (c *Container) Show() (err error) {
 		false,
 	)
 	if err != nil {
-		return err
+		return
 	}
 	length := len(c.bufs)
 	err = c.Nvm.SetCurrentBuffer(c.bufs[0])
@@ -149,11 +157,11 @@ func (c *Container) Show() (err error) {
 		b.SetCurrentBuffer(c.bufs[i])
 		err = b.Execute()
 		if err != nil {
-			return err
+			return
 		}
 	}
 	container_exists = true
-	return nil
+	return
 }
 func PushBuf(nvm *nvim.Nvim, args []string) (err error) {
 	if !container_exists {
