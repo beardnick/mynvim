@@ -3,7 +3,7 @@ package text
 import (
 	"bytes"
 	"fmt"
-	"github.com/beardnick/mynvim/nvimutil"
+	"github.com/beardnick/mynvim/neovim"
 	"github.com/neovim/go-client/nvim"
 	"os/exec"
 	"regexp"
@@ -22,7 +22,7 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 	batch.BufferLines(b, ranges[0]-1, ranges[1], false, &content)
 	err := batch.Execute()
 	if err != nil {
-		nvimutil.Echomsg(nvm, err)
+		neovim.Echomsg(err)
 		return
 	}
 	sb := strings.Builder{}
@@ -33,7 +33,7 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 	lines := sb.String()
 	parts := delimiter.Split(lines, -1)
 	if len(parts) < 2 {
-		nvimutil.Echomsg(nvm, "one or two >>> is needed to split data and cmd")
+		neovim.Echomsg("one or two >>> is needed to split data and cmd")
 		return
 	}
 	var (
@@ -46,7 +46,7 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 	} else if len(parts) == 3 {
 		data, opt, cmd = parts[0], parts[1], parts[2]
 	} else {
-		nvimutil.Echomsg(nvm, "one or two >>> is needed to split data and cmd")
+		neovim.Echomsg("one or two >>> is needed to split data and cmd")
 		return
 	}
 	r := strings.NewReplacer(
@@ -63,12 +63,12 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 		`echo "%s" | awk %s '{ print "%s" }'`, data, opt, cmd)
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
-		nvimutil.Echomsg(nvm, err, string(out))
+		neovim.Echomsg(err, string(out))
 		return
 	}
 	err = nvm.SetBufferLines(b,ranges[0] -1 ,ranges[1],true,bytes.Split(out,[]byte("\n")))
 	if err != nil {
-		nvimutil.Echomsg(nvm, err, string(out))
+		neovim.Echomsg(err, string(out))
 		return
 	}
 }

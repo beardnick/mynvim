@@ -3,7 +3,7 @@ package container
 import (
 	"fmt"
 	"github.com/beardnick/mynvim/check"
-	nvimutil "github.com/beardnick/mynvim/nvimutil"
+	"github.com/beardnick/mynvim/neovim"
 	"github.com/neovim/go-client/nvim"
 	"strconv"
 )
@@ -39,7 +39,7 @@ func (c *Container) CreateEval(eval string) (err error) {
 		return
 	}
 	buffer, err := c.Nvm.CurrentBuffer()
-	nvimutil.Echomsg(c.Nvm, buffer)
+	neovim.Echomsg(buffer)
 	if err != nil {
 		return
 	}
@@ -49,8 +49,8 @@ func (c *Container) CreateEval(eval string) (err error) {
 }
 
 func (c *Container) PushBufEval(eval string) (err error) {
-	nvimutil.Echomsg(c.Nvm, eval)
-	nvimutil.Echomsg(c.Nvm, c.bufs)
+	neovim.Echomsg(eval)
+	neovim.Echomsg(c.bufs)
 	if len(c.bufs) == 0 {
 		return c.CreateEval(eval)
 	}
@@ -60,7 +60,7 @@ func (c *Container) PushBufEval(eval string) (err error) {
 			return
 		}
 	}
-	win, err := nvimutil.Bufwinnr(c.Nvm, int(c.bufs[len(c.bufs)-1]))
+	win, err := neovim.Bufwinnr(c.Nvm, int(c.bufs[len(c.bufs)-1]))
 	if err != nil {
 		return
 	}
@@ -85,7 +85,7 @@ func (c *Container) PushBuf(buffer nvim.Buffer) (err error) {
 	if check.ContainsBuffer(c.bufs, buffer) {
 		return
 	}
-	win, err := nvimutil.Bufwinnr(c.Nvm, int(buffer))
+	win, err := neovim.Bufwinnr(c.Nvm, int(buffer))
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (c *Container) RemoveBuf(buffer nvim.Buffer) {
 
 func (c *Container) Hide() (err error) {
 	for _, buf := range c.bufs {
-		win, err := nvimutil.Bufwinnr(c.Nvm, int(buf))
+		win, err := neovim.Bufwinnr(c.Nvm, int(buf))
 		if err != nil {
 			return err
 		}
@@ -186,7 +186,7 @@ func ToggleContainer(nvm *nvim.Nvim, args []string) (err error) {
 		return
 	}
 	if len(global_container.bufs) == 0 {
-		nvimutil.Echomsg(nvm, "win container empty")
+		neovim.Echomsg("win container empty")
 		return
 	}
 	if err != nil {
