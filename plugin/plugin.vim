@@ -21,6 +21,7 @@ endfunction
 call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 
 call remote#host#RegisterPlugin('mynvim', '0', [
+\ {'type': 'command', 'name': 'Expand', 'sync': 0, 'opts': {'range': ''}},
 \ {'type': 'function', 'name': 'PushBuf', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'ToggleContainer', 'sync': 1, 'opts': {}},
 \ ])
