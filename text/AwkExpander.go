@@ -55,18 +55,18 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 		`{{`, `"`,
 		`}}`, `"`,
 	)
-	data = strings.Trim(data,"\n")
-	opt = strings.Trim(opt,"\n")
-	cmd = strings.Trim(cmd,"\n")
+	data = strings.Trim(data, "\n")
+	opt = strings.Trim(opt, "\n")
+	cmd = strings.Trim(cmd, "\n")
 	cmd = r.Replace(cmd)
 	cmd = fmt.Sprintf(
-		`echo "%s" | awk %s '{ print "%s" }'`, data, opt, cmd)
+		`echo '%s' | awk %s '{ print "%s" }'`, data, opt, cmd)
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
 		neovim.Echomsg(err, string(out))
 		return
 	}
-	err = nvm.SetBufferLines(b,ranges[0] -1 ,ranges[1],true,bytes.Split(out,[]byte("\n")))
+	err = nvm.SetBufferLines(b, ranges[0]-1, ranges[1], true, bytes.Split(out, []byte("\n")))
 	if err != nil {
 		neovim.Echomsg(err, string(out))
 		return
