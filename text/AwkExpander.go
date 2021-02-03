@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var delimiter = regexp.MustCompile(`>+`)
+var delimiter = regexp.MustCompile(`>>>+`)
 
 func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 	batch := nvm.NewBatch()
