@@ -2,10 +2,12 @@ package text
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/beardnick/mynvim/neovim"
+	"github.com/benhoyt/goawk/interp"
+	"github.com/benhoyt/goawk/parser"
 	"github.com/neovim/go-client/nvim"
-	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -59,16 +61,65 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 	opt = strings.Trim(opt, "\n")
 	cmd = strings.Trim(cmd, "\n")
 	cmd = r.Replace(cmd)
-	cmd = fmt.Sprintf(
-		`echo '%s' | awk %s '{ print "%s" }'`, data, opt, cmd)
-	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	src := fmt.Sprintf(`{print "%s"}`, cmd)
+	prog, err := parser.ParseProgram([]byte(src), nil)
 	if err != nil {
-		neovim.Echomsg(err, string(out))
+		neovim.Echomsg(err)
 		return
 	}
-	err = nvm.SetBufferLines(b, ranges[0]-1, ranges[1], true, bytes.Split(out, []byte("\n")))
+	vars, err := ParseAwkOpt(opt)
 	if err != nil {
-		neovim.Echomsg(err, string(out))
+		neovim.Echomsg(err)
 		return
 	}
+	out := bytes.NewBuffer(nil)
+	config := &interp.Config{
+		Stdin:  bytes.NewReader([]byte(data)),
+		Vars:   vars,
+		Output: out,
+	}
+	_, err = interp.ExecProgram(prog, config)
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
+	err = nvm.SetBufferLines(b, ranges[0]-1, ranges[1], true, bytes.Split(out.Bytes(), []byte("\n")))
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
+}
+
+func ParseAwkOpt(opt string) (vars []string, err error) {
+	fieldSep := " "
+	vs := make([]string, 0)
+	args := strings.Fields(opt)
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "-F":
+			if i+1 >= len(args) {
+				err = errors.New("flag needs an argument: -F")
+				return
+			}
+			i++
+			fieldSep = args[i]
+		case "-v":
+			if i+1 >= len(args) {
+				err = errors.New("flag needs an argument: -v")
+				return
+			}
+			i++
+			vs = append(vs, args[i])
+		}
+	}
+	vars = []string{"FS", fieldSep}
+	for _, v := range vs {
+		parts := strings.SplitN(v, "=", 2)
+		if len(parts) != 2 {
+			err = fmt.Errorf("-v flag must be in format name=value")
+			return
+		}
+		vars = append(vars, parts[0], parts[1])
+	}
+	return
 }
