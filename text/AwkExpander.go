@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/beardnick/mynvim/buffer"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/benhoyt/goawk/interp"
 	"github.com/benhoyt/goawk/parser"
@@ -15,24 +16,11 @@ import (
 var delimiter = regexp.MustCompile(`>>>+`)
 
 func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
-	batch := nvm.NewBatch()
-	var (
-		b       nvim.Buffer
-		content [][]byte
-	)
-	batch.CurrentBuffer(&b)
-	batch.BufferLines(b, ranges[0]-1, ranges[1], false, &content)
-	err := batch.Execute()
+	lines, err := buffer.CurrentBufferLines(nvm, ranges)
 	if err != nil {
 		neovim.Echomsg(err)
 		return
 	}
-	sb := strings.Builder{}
-	for _, l := range content {
-		sb.Write(l)
-		sb.Write([]byte("\n"))
-	}
-	lines := sb.String()
 	parts := delimiter.Split(lines, -1)
 	if len(parts) < 2 {
 		neovim.Echomsg("one or two >>> is needed to split data and cmd")
@@ -79,6 +67,11 @@ func AwkExpand(nvm *nvim.Nvim, ranges [2]int) {
 		Output: out,
 	}
 	_, err = interp.ExecProgram(prog, config)
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
+	b, err := nvm.CurrentBuffer()
 	if err != nil {
 		neovim.Echomsg(err)
 		return
