@@ -11,8 +11,12 @@ import (
 	"github.com/neovim/go-client/nvim"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
+
+var pluginDir = filepath.Join(HomeDir(), ".mynvim")
 
 type TagsResp []github.RepositoryTag
 
@@ -58,13 +62,13 @@ func Pull(nvm *nvim.Nvim, args []string) {
 	}
 	//git clone --depth 1 --branch <tag_name> <repo_url>
 	if len(tags) > 0 {
-		_, err = git.PlainClone("./", false, &git.CloneOptions{
+		_, err = git.PlainClone(filepath.Join(pluginDir, "github.com", fullName), false, &git.CloneOptions{
 			URL:           fmt.Sprintf("https://github.com/%s", fullName),
 			ReferenceName: plumbing.ReferenceName("refs/tags/" + tags[0]),
 			Depth:         1,
 		})
 	} else {
-		_, err = git.PlainClone("./", false, &git.CloneOptions{
+		_, err = git.PlainClone(filepath.Join(pluginDir, "github.com", fullName), false, &git.CloneOptions{
 			URL: fmt.Sprintf("https://github.com/%s", fullName),
 		})
 	}
@@ -76,4 +80,8 @@ func Pull(nvm *nvim.Nvim, args []string) {
 func Push(nvm *nvim.Nvim, args []string) {
 	repo := args[0]
 	neovim.Echomsg(repo)
+}
+
+func HomeDir() string {
+	return os.Getenv("HOME")
 }
