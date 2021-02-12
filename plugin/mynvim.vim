@@ -16,8 +16,8 @@ function! s:JobStart(host) abort
 endfunction
 
 
-function! plugin#begin() abort
-
+function! mynvim#begin(plugin_dir) abort
+    let g:mynvim_plugin_dir = expand(a:plugin_dir)
 endfunction
 
 " -----------------------------------------------------------------------------

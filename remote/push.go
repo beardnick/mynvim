@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/beardnick/mynvim/global"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -16,7 +17,14 @@ import (
 	"strings"
 )
 
-var pluginDir = filepath.Join(HomeDir(), ".mynvim")
+func PluginDir() (plugin string) {
+	err := global.Nvm.Var("mynvim_plugin_dir", &plugin)
+	if err != nil {
+		neovim.Echomsg(err)
+		plugin = filepath.Join(HomeDir(), ".mynvim")
+	}
+	return
+}
 
 var repos []string
 
@@ -62,7 +70,7 @@ func Pull(nvm *nvim.Nvim, args []string) {
 }
 
 func getStoreDir(fullName string) string {
-	return filepath.Join(pluginDir, "github.com", fullName)
+	return filepath.Join(PluginDir(), "github.com", fullName)
 }
 
 func Push(nvm *nvim.Nvim, args []string) {
@@ -106,11 +114,4 @@ func PullAll(nvm *nvim.Nvim) {
 			neovim.Echomsg(err)
 		}
 	}
-}
-
-func Begin(nvm *nvim.Nvim, args []string) (err error) {
-	if len(args) > 0 {
-		pluginDir = args[0]
-	}
-	return
 }
