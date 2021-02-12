@@ -15,6 +15,11 @@ function! s:JobStart(host) abort
     return jobstart(s:plugin_cmd, {'rpc': v:true, 'detach': v:false})
 endfunction
 
+
+function! plugin#begin() abort
+
+endfunction
+
 " -----------------------------------------------------------------------------
 " plugin manifest
 
@@ -23,6 +28,7 @@ call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 call remote#host#RegisterPlugin('mynvim', '0', [
 \ {'type': 'command', 'name': 'Expand', 'sync': 0, 'opts': {'range': ''}},
 \ {'type': 'command', 'name': 'Pull', 'sync': 0, 'opts': {'nargs': '+'}},
+\ {'type': 'command', 'name': 'PullAll', 'sync': 0, 'opts': {'nargs': '0'}},
 \ {'type': 'command', 'name': 'Push', 'sync': 0, 'opts': {'nargs': '+'}},
 \ {'type': 'function', 'name': 'PushBuf', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'ToggleContainer', 'sync': 1, 'opts': {}},

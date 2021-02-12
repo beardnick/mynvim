@@ -18,6 +18,8 @@ import (
 
 var pluginDir = filepath.Join(HomeDir(), ".mynvim")
 
+var repos []string
+
 type TagsResp []github.RepositoryTag
 
 // todo: 处理分页
@@ -55,26 +57,12 @@ func Pull(nvm *nvim.Nvim, args []string) {
 		neovim.Echomsg("invalid plug , / is needed")
 		return
 	}
-	tags, err := repoTags(fullName)
-	if err != nil {
-		neovim.Echomsg(err)
-		return
-	}
-	//git clone --depth 1 --branch <tag_name> <repo_url>
-	if len(tags) > 0 {
-		_, err = git.PlainClone(filepath.Join(pluginDir, "github.com", fullName), false, &git.CloneOptions{
-			URL:           fmt.Sprintf("https://github.com/%s", fullName),
-			ReferenceName: plumbing.ReferenceName("refs/tags/" + tags[0]),
-			Depth:         1,
-		})
-	} else {
-		_, err = git.PlainClone(filepath.Join(pluginDir, "github.com", fullName), false, &git.CloneOptions{
-			URL: fmt.Sprintf("https://github.com/%s", fullName),
-		})
-	}
-	if err != nil {
-		return
-	}
+	repos = append(repos, fullName)
+	return
+}
+
+func getStoreDir(fullName string) string {
+	return filepath.Join(pluginDir, "github.com", fullName)
 }
 
 func Push(nvm *nvim.Nvim, args []string) {
@@ -84,4 +72,45 @@ func Push(nvm *nvim.Nvim, args []string) {
 
 func HomeDir() string {
 	return os.Getenv("HOME")
+}
+
+func pullLatest(fullName string) (err error) {
+	tags, err := repoTags(fullName)
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
+	storeDir := getStoreDir(fullName)
+	//git clone --depth 1 --branch <tag_name> <repo_url>
+	if len(tags) > 0 {
+		_, err = git.PlainClone(storeDir, false, &git.CloneOptions{
+			URL:           fmt.Sprintf("https://github.com/%s", fullName),
+			ReferenceName: plumbing.ReferenceName("refs/tags/" + tags[0]),
+			Depth:         1,
+		})
+	} else {
+		_, err = git.PlainClone(storeDir, false, &git.CloneOptions{
+			URL: fmt.Sprintf("https://github.com/%s", fullName),
+		})
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+func PullAll(nvm *nvim.Nvim) {
+	for _, repo := range repos {
+		err := pullLatest(repo)
+		if err != nil {
+			neovim.Echomsg(err)
+		}
+	}
+}
+
+func Begin(nvm *nvim.Nvim, args []string) (err error) {
+	if len(args) > 0 {
+		pluginDir = args[0]
+	}
+	return
 }
