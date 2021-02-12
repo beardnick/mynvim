@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/beardnick/mynvim/check"
 	"github.com/beardnick/mynvim/global"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/go-git/go-git/v5"
@@ -30,7 +31,7 @@ var repos []string
 
 type TagsResp []github.RepositoryTag
 
-// todo: 处理分页
+// todo: 处理tag分页
 func repoTags(fullName string) (tags []string, err error) {
 	tagsUrl := fmt.Sprintf("https://api.github.com/repos/%s/tags", fullName)
 	rep, err := http.DefaultClient.Get(tagsUrl)
@@ -66,6 +67,14 @@ func Pull(nvm *nvim.Nvim, args []string) {
 		return
 	}
 	repos = append(repos, fullName)
+	if !check.RepoExists(getStoreDir(fullName)) {
+		pullLatest(fullName)
+	}
+	neovim.Echomsg("begin source")
+	err := loadPlugin(nvm, fullName)
+	if err != nil {
+		neovim.Echomsg(err)
+	}
 	return
 }
 
@@ -114,4 +123,19 @@ func PullAll(nvm *nvim.Nvim) {
 			neovim.Echomsg(err)
 		}
 	}
+}
+
+func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
+	dir := getStoreDir(fullName)
+	plugins, err := filepath.Glob(filepath.Join(dir, "plugin/*.vim"))
+	if err != nil {
+		return
+	}
+	afters, err := filepath.Glob(filepath.Join(dir, "after/*.vim"))
+	if err != nil {
+		return
+	}
+	all := append(plugins, afters...)
+	err = nvm.Command(fmt.Sprintf("source %s", strings.Join(all, " ")))
+	return
 }

@@ -12,8 +12,7 @@ func FileExists(path string) bool {
 
 func RepoExists(path string) bool {
 	_, err := git.PlainOpen(path)
-	ok := true
-	if err, ok = err.(git.NoMatchingRefSpecError); ok {
+	if err == git.ErrRepositoryNotExists {
 		return false
 	}
 	return true
