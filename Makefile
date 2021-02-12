@@ -2,7 +2,8 @@
 all:build manifest
 
 build:
-	go build -v -o bin/mynvim
+	mkdir -p $(CURDIR)/bin
+	go build -v -o $(CURDIR)/bin/mynvim
 
 manifest:
 	$(CURDIR)/bin/mynvim -manifest mynvim  -location $(CURDIR)/plugin/mynvim.vim
