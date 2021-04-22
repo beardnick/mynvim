@@ -116,3 +116,25 @@ func ParseAwkOpt(opt string) (vars []string, err error) {
 	}
 	return
 }
+
+//func Expend(raw string) (s string, err error) {
+//
+//}
+
+func templateOf(lines string, delimiter *regexp.Regexp) (data, opt, cmd string, err error) {
+	parts := delimiter.Split(lines, 3)
+	if len(parts) < 2 {
+		err = fmt.Errorf("one or two %v match is needed to split data and cmd", delimiter)
+		return
+	}
+	for i := 0; i < len(parts); i++ {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	if len(parts) == 2 {
+		data, cmd = parts[0], parts[1]
+	}
+	if len(parts) == 3 {
+		data, opt, cmd = parts[0], parts[1], parts[2]
+	}
+	return
+}
