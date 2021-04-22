@@ -51,19 +51,68 @@ func Test_templateOf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotData, gotOpt, gotCmd, err := templateOf(tt.args.lines, tt.args.delimiter)
+			gotData, gotOpt, gotCmd, err := parseTemplateArg(tt.args.lines, tt.args.delimiter)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("templateOf() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("parseTemplateArg() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotData != tt.wantData {
-				t.Errorf("templateOf() gotData = %v, want %v", gotData, tt.wantData)
+				t.Errorf("parseTemplateArg() gotData = %v, want %v", gotData, tt.wantData)
 			}
 			if gotOpt != tt.wantOpt {
-				t.Errorf("templateOf() gotOpt = %v, want %v", gotOpt, tt.wantOpt)
+				t.Errorf("parseTemplateArg() gotOpt = %v, want %v", gotOpt, tt.wantOpt)
 			}
 			if gotCmd != tt.wantCmd {
-				t.Errorf("templateOf() gotCmd = %v, want %v", gotCmd, tt.wantCmd)
+				t.Errorf("parseTemplateArg() gotCmd = %v, want %v", gotCmd, tt.wantCmd)
+			}
+		})
+	}
+}
+
+func TestExpend(t *testing.T) {
+	type args struct {
+		lines string
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantExpended string
+		wantErr      bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				lines: "a\nb\nc\n>>>{{$1}},",
+			},
+			wantExpended: "a,\nb,\nc,\n",
+			wantErr:      false,
+		},
+		{
+			name: "have new line 1",
+			args: args{
+				lines: "a\nb\nc\n>>>{{$1}}\n,",
+			},
+			wantExpended: "a\n,\nb\n,\nc\n,\n",
+			wantErr:      false,
+		},
+		{
+			name: "have new line 2",
+			args: args{
+				lines: "a\nb\nc\n>>>{{$1}}\n\n,",
+			},
+			wantExpended: "a\n\n,\nb\n\n,\nc\n\n,\n",
+			wantErr:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotExpended, err := Expend(tt.args.lines)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Expend() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotExpended != tt.wantExpended {
+				t.Errorf("Expend() gotExpended = %v, want %v", gotExpended, tt.wantExpended)
 			}
 		})
 	}

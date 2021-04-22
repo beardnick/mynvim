@@ -26,7 +26,7 @@ func Echo(format string, a ...interface{}) error {
 }
 
 // EchoRaw provide the raw output vim 'echo' command.
-func EchoRaw( a string) error {
+func EchoRaw(a string) error {
 	global.Nvm.Command("redraw")
 	return global.Nvm.Command("echo \"" + a + "\"")
 }
@@ -39,6 +39,10 @@ func Echomsg(a ...interface{}) error {
 // Echoerr provide the vim 'echoerr' command.
 func Echoerr(format string, a ...interface{}) error {
 	return global.Nvm.WritelnErr(fmt.Sprintf(format, a...))
+}
+
+func EchoErrStack(err error) error {
+	return global.Nvm.WritelnErr(fmt.Sprintf("%+v", err))
 }
 
 type stackTracer interface {
@@ -56,7 +60,7 @@ func EchohlBefore(prefix string, highlight string, format string, a ...interface
 }
 
 // EchohlAfter provide the vim 'echo' command with the 'echohl' highlighting message text.
-func EchohlAfter( prefix string, highlight string, format string, a ...interface{}) error {
+func EchohlAfter(prefix string, highlight string, format string, a ...interface{}) error {
 	global.Nvm.Command("redraw")
 	if prefix != "" {
 		prefix += ": "
@@ -65,14 +69,14 @@ func EchohlAfter( prefix string, highlight string, format string, a ...interface
 }
 
 // EchoProgress displays a command progress message to echo area.
-func EchoProgress( prefix, format string, a ...interface{}) error {
+func EchoProgress(prefix, format string, a ...interface{}) error {
 	global.Nvm.Command("redraw")
 	msg := fmt.Sprintf(format, a...)
 	return global.Nvm.Command(fmt.Sprintf("echo \"%s: \" | echohl %s | echon \"%s ...\" | echohl None", prefix, ProgressColor, msg))
 }
 
 // EchoSuccess displays the success of the command to echo area.
-func EchoSuccess( prefix string, msg string) error {
+func EchoSuccess(prefix string, msg string) error {
 	global.Nvm.Command("redraw")
 	if msg != "" {
 		msg = " | " + msg
