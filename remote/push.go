@@ -156,7 +156,7 @@ func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
 func EnsurePath(path string) (err error) {
 	_, err = os.Stat(path)
 	if errors.Is(err,os.ErrNotExist) {
-		err = os.MkdirAll(path,776)
+		err = os.MkdirAll(path,os.ModePerm)
 		return
 	}
 	return
