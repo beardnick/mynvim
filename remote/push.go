@@ -18,13 +18,12 @@ import (
 	"strings"
 )
 
-func PluginDir() (plugin string) {
-	err := global.Nvm.Var("mynvim_plugin_dir", &plugin)
+func PullDir(nvm *nvim.Nvim, args []string) {
+	dir := args[0]
+	err := nvm.SetVar("mynvim_plugin_dir", dir)
 	if err != nil {
-		neovim.Echomsg(err)
-		plugin = filepath.Join(HomeDir(), ".mynvim")
+		neovim.EchoErrStack(err)
 	}
-	return
 }
 
 var repos []string
@@ -79,7 +78,16 @@ func Pull(nvm *nvim.Nvim, args []string) {
 }
 
 func getStoreDir(fullName string) string {
-	return filepath.Join(PluginDir(), "github.com", fullName)
+	return filepath.Join(GetPluginDir(), "github.com", fullName)
+}
+
+func GetPluginDir() (plugin string) {
+	err := global.Nvm.Var("mynvim_plugin_dir", &plugin)
+	if err != nil {
+		plugin = filepath.Join(HomeDir(),".cache/mynvim/plugin")
+		_ = global.Nvm.SetVar("mynvim_plugin_dir", plugin)
+	}
+	return
 }
 
 func Push(nvm *nvim.Nvim, args []string) {
@@ -117,6 +125,11 @@ func pullLatest(fullName string) (err error) {
 }
 
 func PullAll(nvm *nvim.Nvim) {
+	err := EnsurePath(GetPluginDir())
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
 	for _, repo := range repos {
 		err := pullLatest(repo)
 		if err != nil {
@@ -137,5 +150,14 @@ func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
 	}
 	all := append(plugins, afters...)
 	err = nvm.Command(fmt.Sprintf("source %s", strings.Join(all, " ")))
+	return
+}
+
+func EnsurePath(path string) (err error) {
+	_, err = os.Stat(path)
+	if errors.Is(err,os.ErrNotExist) {
+		err = os.MkdirAll(path,776)
+		return
+	}
 	return
 }
