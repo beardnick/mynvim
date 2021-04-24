@@ -18,11 +18,53 @@ import (
 	"strings"
 )
 
-func PullDir(nvm *nvim.Nvim, args []string) {
+func PluginDir(nvm *nvim.Nvim, args []string) {
 	dir := args[0]
 	err := nvm.SetVar("mynvim_plugin_dir", dir)
 	if err != nil {
 		neovim.EchoErrStack(err)
+	}
+}
+
+func Plugin(nvm *nvim.Nvim, args []string) {
+	fullName := args[0]
+	fullName = strings.Trim(fullName, "'")
+	fullName = strings.Trim(fullName, `"`)
+	if !strings.Contains(fullName, "/") {
+		neovim.Echomsg("invalid plug , / is needed")
+		return
+	}
+	repos = append(repos, fullName)
+	return
+}
+
+// todo: 进度条
+func PluginInstall(nvm *nvim.Nvim) {
+	err := EnsurePath(GetPluginDir())
+	if err != nil {
+		neovim.Echomsg(err)
+		return
+	}
+	var valid []string
+	// install plugin
+	for _, repo := range repos {
+		if check.RepoExists(getStoreDir(repo)) {
+			valid = append(valid, repo)
+			continue
+		}
+		err = pullLatest(repo)
+		if err == nil {
+			valid = append(valid, repo)
+			continue
+		}
+		neovim.Echomsg(err)
+	}
+	// load plugin
+	for _, repo := range valid {
+		err = loadPlugin(nvm, repo)
+		if err != nil {
+			neovim.Echomsg(err)
+		}
 	}
 }
 
@@ -57,26 +99,6 @@ func repoTags(fullName string) (tags []string, err error) {
 	return
 }
 
-func Pull(nvm *nvim.Nvim, args []string) {
-	fullName := args[0]
-	fullName = strings.Trim(fullName, "'")
-	fullName = strings.Trim(fullName, `"`)
-	if !strings.Contains(fullName, "/") {
-		neovim.Echomsg("invalid plug , / is needed")
-		return
-	}
-	repos = append(repos, fullName)
-	if !check.RepoExists(getStoreDir(fullName)) {
-		pullLatest(fullName)
-	}
-	neovim.Echomsg("begin source")
-	err := loadPlugin(nvm, fullName)
-	if err != nil {
-		neovim.Echomsg(err)
-	}
-	return
-}
-
 func getStoreDir(fullName string) string {
 	return filepath.Join(GetPluginDir(), "github.com", fullName)
 }
@@ -84,7 +106,7 @@ func getStoreDir(fullName string) string {
 func GetPluginDir() (plugin string) {
 	err := global.Nvm.Var("mynvim_plugin_dir", &plugin)
 	if err != nil {
-		plugin = filepath.Join(HomeDir(),".cache/mynvim/plugin")
+		plugin = filepath.Join(HomeDir(), ".cache/mynvim/plugin")
 		_ = global.Nvm.SetVar("mynvim_plugin_dir", plugin)
 	}
 	return
@@ -108,34 +130,24 @@ func pullLatest(fullName string) (err error) {
 	storeDir := getStoreDir(fullName)
 	//git clone --depth 1 --branch <tag_name> <repo_url>
 	if len(tags) > 0 {
+		neovim.Echomsg(fmt.Sprintf("start pull %s@%s", fullName, tags[0]))
 		_, err = git.PlainClone(storeDir, false, &git.CloneOptions{
 			URL:           fmt.Sprintf("https://github.com/%s", fullName),
 			ReferenceName: plumbing.ReferenceName("refs/tags/" + tags[0]),
 			Depth:         1,
 		})
+		neovim.Echomsg(fmt.Sprintf("finish pull %s@%s", fullName, tags[0]))
 	} else {
+		neovim.Echomsg(fmt.Sprintf("start pull %s", fullName))
 		_, err = git.PlainClone(storeDir, false, &git.CloneOptions{
 			URL: fmt.Sprintf("https://github.com/%s", fullName),
 		})
+		neovim.Echomsg(fmt.Sprintf("finish pull %s", fullName))
 	}
 	if err != nil {
 		return
 	}
 	return
-}
-
-func PullAll(nvm *nvim.Nvim) {
-	err := EnsurePath(GetPluginDir())
-	if err != nil {
-		neovim.Echomsg(err)
-		return
-	}
-	for _, repo := range repos {
-		err := pullLatest(repo)
-		if err != nil {
-			neovim.Echomsg(err)
-		}
-	}
 }
 
 func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
@@ -155,8 +167,8 @@ func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
 
 func EnsurePath(path string) (err error) {
 	_, err = os.Stat(path)
-	if errors.Is(err,os.ErrNotExist) {
-		err = os.MkdirAll(path,os.ModePerm)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(path, os.ModePerm)
 		return
 	}
 	return

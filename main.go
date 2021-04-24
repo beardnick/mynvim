@@ -14,9 +14,9 @@ func main() {
 		p.HandleFunction(&plugin.FunctionOptions{Name: "PushBuf"}, container.PushBuf)
 		p.HandleFunction(&plugin.FunctionOptions{Name: "ToggleContainer"}, container.ToggleContainer)
 		p.HandleCommand(&plugin.CommandOptions{Name: "Expand", Range: "."}, text.AwkExpand)
-		p.HandleCommand(&plugin.CommandOptions{Name: "PullDir", NArgs: "+"}, remote.PullDir)
-		p.HandleCommand(&plugin.CommandOptions{Name: "Pull", NArgs: "+"}, remote.Pull)
-		p.HandleCommand(&plugin.CommandOptions{Name: "PullAll", NArgs: "0"}, remote.PullAll)
+		p.HandleCommand(&plugin.CommandOptions{Name: "PluginDir", NArgs: "+"}, remote.PluginDir)
+		p.HandleCommand(&plugin.CommandOptions{Name: "Plugin", NArgs: "+"}, remote.Plugin)
+		p.HandleCommand(&plugin.CommandOptions{Name: "PluginInstall", NArgs: "0"}, remote.PluginInstall)
 		p.HandleCommand(&plugin.CommandOptions{Name: "Push", NArgs: "+"}, remote.Push)
 		return nil
 	})

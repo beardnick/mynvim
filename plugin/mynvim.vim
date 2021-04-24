@@ -27,9 +27,9 @@ call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 
 call remote#host#RegisterPlugin('mynvim', '0', [
 \ {'type': 'command', 'name': 'Expand', 'sync': 0, 'opts': {'range': ''}},
-\ {'type': 'command', 'name': 'Pull', 'sync': 0, 'opts': {'nargs': '+'}},
-\ {'type': 'command', 'name': 'PullAll', 'sync': 0, 'opts': {'nargs': '0'}},
-\ {'type': 'command', 'name': 'PullDir', 'sync': 0, 'opts': {'nargs': '+'}},
+\ {'type': 'command', 'name': 'Plugin', 'sync': 0, 'opts': {'nargs': '+'}},
+\ {'type': 'command', 'name': 'PluginDir', 'sync': 0, 'opts': {'nargs': '+'}},
+\ {'type': 'command', 'name': 'PluginInstall', 'sync': 0, 'opts': {'nargs': '0'}},
 \ {'type': 'command', 'name': 'Push', 'sync': 0, 'opts': {'nargs': '+'}},
 \ {'type': 'function', 'name': 'PushBuf', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'ToggleContainer', 'sync': 1, 'opts': {}},
