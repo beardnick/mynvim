@@ -88,6 +88,14 @@ func TestExpend(t *testing.T) {
 			wantErr:      false,
 		},
 		{
+			name: "normal ,",
+			args: args{
+				lines: "a,1\nb,2\nc,3\n>>>-F ,\n>>>\n{{$1}}",
+			},
+			wantExpended: "a\nb\nc\n",
+			wantErr:      false,
+		},
+		{
 			name: "have new line 1",
 			args: args{
 				lines: "a\nb\nc\n>>>{{$1}}\n,",
