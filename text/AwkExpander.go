@@ -89,15 +89,26 @@ func parseTemplateArg(lines string, delimiter *regexp.Regexp) (data, opt, templa
 	return
 }
 
+var arch = regexp.MustCompile("{{.*?}}")
+
 func parseTemplate(t string) string {
+	archs := arch.FindAllString(t, -1)
 	r := strings.NewReplacer(
 		`"`, `\"`,
 		`'`, `'\\\''`,
-		`{{`, `"`,
-		`}}`, `"`,
 		"\n", "\"\nprint \"",
 	)
 	t = r.Replace(t)
+	r = strings.NewReplacer(
+		`{{`, `"`,
+		`}}`, `"`,
+	)
+	archIndex := arch.FindAllStringIndex(t, -1)
+	for i := 0; i < len(archs); i++ {
+		s := r.Replace(archs[i])
+		b, e := archIndex[i][0], archIndex[i][1]
+		t = t[:b] + s + t[e:]
+	}
 	return t
 }
 

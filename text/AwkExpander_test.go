@@ -96,6 +96,14 @@ func TestExpend(t *testing.T) {
 			wantErr:      false,
 		},
 		{
+			name: "function",
+			args: args{
+				lines: "a,1\nb,2\nc,3\n>>>\n{{toupper($1)}}",
+			},
+			wantExpended: "A,1\nB,2\nC,3\n",
+			wantErr:      false,
+		},
+		{
 			name: "have new line 1",
 			args: args{
 				lines: "a\nb\nc\n>>>{{$1}}\n,",
