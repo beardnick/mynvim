@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/beardnick/mynvim/component"
 	"github.com/beardnick/mynvim/container"
 	"github.com/beardnick/mynvim/global"
 	"github.com/beardnick/mynvim/remote"
@@ -18,6 +19,7 @@ func main() {
 		p.HandleCommand(&plugin.CommandOptions{Name: "Plugin", NArgs: "+"}, remote.Plugin)
 		p.HandleCommand(&plugin.CommandOptions{Name: "PluginInstall", NArgs: "0"}, remote.PluginInstall)
 		p.HandleCommand(&plugin.CommandOptions{Name: "Push", NArgs: "+"}, remote.Push)
+		p.HandleCommand(&plugin.CommandOptions{Name: "Output"}, component.OutPut)
 		return nil
 	})
 }

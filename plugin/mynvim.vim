@@ -27,6 +27,7 @@ call remote#host#Register(s:plugin_name, '', function('s:JobStart'))
 
 call remote#host#RegisterPlugin('mynvim', '0', [
 \ {'type': 'command', 'name': 'Expand', 'sync': 0, 'opts': {'range': ''}},
+\ {'type': 'command', 'name': 'Output', 'sync': 0, 'opts': {}},
 \ {'type': 'command', 'name': 'Plugin', 'sync': 0, 'opts': {'nargs': '+'}},
 \ {'type': 'command', 'name': 'PluginDir', 'sync': 0, 'opts': {'nargs': '+'}},
 \ {'type': 'command', 'name': 'PluginInstall', 'sync': 0, 'opts': {'nargs': '0'}},
