@@ -11,9 +11,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/google/go-github/v33/github"
 	"github.com/neovim/go-client/nvim"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -34,7 +36,10 @@ func Plugin(nvm *nvim.Nvim, args []string) {
 		neovim.Echomsg("invalid plug , / is needed")
 		return
 	}
-	repos = append(repos, fullName)
+	repos = append(repos, MyPlugin{
+		FullName: fullName,
+		Do:       args[1],
+	})
 	return
 }
 
@@ -48,13 +53,14 @@ func PluginInstall(nvm *nvim.Nvim) {
 	var valid []string
 	// install plugin
 	for _, repo := range repos {
-		if check.RepoExists(getStoreDir(repo)) {
-			valid = append(valid, repo)
+		fullName := repo.FullName
+		if check.RepoExists(getStoreDir(fullName)) {
+			valid = append(valid, fullName)
 			continue
 		}
-		err = pullLatest(repo)
+		err = pullLatest(fullName)
 		if err == nil {
-			valid = append(valid, repo)
+			valid = append(valid, fullName)
 			continue
 		}
 		neovim.Echomsg(err)
@@ -68,7 +74,37 @@ func PluginInstall(nvm *nvim.Nvim) {
 	}
 }
 
-var repos []string
+func Do(cmd string, env []string, out io.Writer) (err error) {
+	cmds := strings.Fields(cmd)
+	if len(cmds) == 0 {
+		return
+	}
+	var c *exec.Cmd
+	if len(cmds) == 1 {
+		c = exec.Command(cmds[0])
+	} else {
+		c = exec.Command(cmds[0], cmds[1:]...)
+	}
+	c.Env = env
+	stdOut, err := c.StdoutPipe()
+	if err != nil {
+		return
+	}
+	stdErr, err := c.StderrPipe()
+	if err != nil {
+		return
+	}
+	err = c.Start()
+	if err != nil {
+		return
+	}
+	go func() { io.Copy(out, stdOut) }()
+	go func() { io.Copy(out, stdErr) }()
+	return c.Wait()
+}
+
+//var repos []string
+var repos []MyPlugin
 
 type TagsResp []github.RepositoryTag
 
@@ -172,4 +208,9 @@ func EnsurePath(path string) (err error) {
 		return
 	}
 	return
+}
+
+type MyPlugin struct {
+	FullName string
+	Do       string
 }
