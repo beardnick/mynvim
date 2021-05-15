@@ -20,6 +20,7 @@ func main() {
 		p.HandleCommand(&plugin.CommandOptions{Name: "PluginInstall", NArgs: "0"}, remote.PluginInstall)
 		p.HandleCommand(&plugin.CommandOptions{Name: "Push", NArgs: "+"}, remote.Push)
 		p.HandleCommand(&plugin.CommandOptions{Name: "Output"}, component.OutPut)
+		p.HandleCommand(&plugin.CommandOptions{Name: "Tree"}, component.Tree)
 		return nil
 	})
 }
