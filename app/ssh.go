@@ -21,13 +21,13 @@ func ToggleSsh(nvm *nvim.Nvim){
 		Data:     "ssh",
 		Nodes:    accounts,
 		Children: nil,
+		NodeAction: ":<C-U>SshConnect<CR>",
 	}
 	tree := component.NewCommonTree(data)
 	err := tree.Show(nvm)
 	neovim.EchoErrStack(err)
 }
 
-// todo: send text to ssh job with chansend()
 func SshConnect(nvm *nvim.Nvim){
 	servers := config.Conf.Servers
 	var account []byte
@@ -38,7 +38,24 @@ func SshConnect(nvm *nvim.Nvim){
 		return
 	}
 	jobid := 0
-	b.Exec("40split term",false,nil)
+
+	buffer, err := nvm.CreateBuffer(false, false)
+	if err != nil {
+		neovim.EchoErrStack(err)
+		return
+	}
+	b.Command("split")
+	b.Command("wincmd J")
+	b.SetCurrentBuffer(buffer)
+
+	var win nvim.Window
+	b.CurrentWindow(&win)
+	err = b.Execute()
+	if err != nil {
+		neovim.EchoErrStack(err)
+		return
+	}
+	b.SetWindowHeight(win, 30)
 	pass := ""
 	for _, s := range servers {
 		if  s.Account != string(account) {
@@ -49,22 +66,26 @@ func SshConnect(nvm *nvim.Nvim){
 	}
 	err = b.Execute()
 	// try to send password
+	var line []byte
 	for i := 0; i < 100 ; i++ {
 		time.Sleep(time.Millisecond * 100)
-		line, e := nvm.CurrentLine()
-		if e != nil {
-			neovim.EchoErrStack(e)
-			return
+		line, err = nvm.CurrentLine()
+		if err != nil {
+			break
 		}
 		if strings.Contains(string(line),"#") || strings.Contains(string(line),"$"){
-			e = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,"ls -al\n"),nil)
-			neovim.EchoErrStack(e)
-			return
+			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,"ls -al\n"),nil)
+			break
 		}
 		if strings.Contains(string(line),"password:") {
-			e = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,pass + "\n"),nil)
-			neovim.EchoErrStack(e)
-			return
+			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,pass + "\n"),nil)
+			break
 		}
 	}
+	if err !=nil {
+		neovim.EchoErrStack(err)
+		return
+	}
+	err = nvm.Command("normal I")
+	neovim.EchoErrStack(err)
 }

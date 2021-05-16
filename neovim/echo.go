@@ -42,6 +42,9 @@ func Echoerr(format string, a ...interface{}) error {
 }
 
 func EchoErrStack(err error) error {
+	if err == nil {
+		return nil
+	}
 	return global.Nvm.WritelnErr(fmt.Sprintf("%+v", err))
 }
 
