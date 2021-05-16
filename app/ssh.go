@@ -34,6 +34,9 @@ func SshConnect(nvm *nvim.Nvim){
 		neovim.EchoErrStack(err)
 		return
 	}
+	neovim.Echomsg("before")
+	neovim.Echomsg(string(account))
+	neovim.Echomsg(len(account))
 	b.Exec("40split term",false,nil)
 	for _, s := range servers {
 		if  s.Account != string(account) {

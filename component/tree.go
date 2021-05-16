@@ -45,8 +45,9 @@ func (c CommonTree) Show(nvm *nvim.Nvim) (err error) {
 	b.Exec("setlocal nonumber",false,nil)
 	b.CurrentBuffer(&buffer)
 	b.SetBufferLines(buffer,0,len(out),false,out)
-	b.SetBufferKeyMap(buffer,"n","q","<C-U>:q!<CR>", map[string]bool{"noremap":true,"silent":true})
-	b.SetBufferKeyMap(buffer,"n","<CR>","<C-U>:SshConnect<CR>", map[string]bool{"noremap":true,"silent":true})
+	b.SetBufferKeyMap(buffer,"n","q",":<C-U>q!<CR>", map[string]bool{"noremap":true,"silent":true})
+	b.SetBufferKeyMap(buffer,"n","<CR>",":<C-U>SshConnect<CR>", map[string]bool{"noremap":true,"silent":true})
+	b.SetBufferKeyMap(buffer,"n","o",":<C-U>SshConnect<CR>", map[string]bool{"noremap":true,"silent":true})
 	b.Exec("setlocal nomodifiable",false,nil)
 	err = b.Execute()
 	return
