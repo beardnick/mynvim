@@ -74,7 +74,6 @@ func SshConnect(nvm *nvim.Nvim){
 			break
 		}
 		if strings.Contains(string(line),"#") || strings.Contains(string(line),"$"){
-			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,"ls -al\n"),nil)
 			break
 		}
 		if strings.Contains(string(line),"password:") {
