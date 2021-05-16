@@ -6,6 +6,8 @@ import (
 	"github.com/beardnick/mynvim/config"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/neovim/go-client/nvim"
+	"strings"
+	"time"
 )
 
 
@@ -37,12 +39,32 @@ func SshConnect(nvm *nvim.Nvim){
 	}
 	jobid := 0
 	b.Exec("40split term",false,nil)
+	pass := ""
 	for _, s := range servers {
 		if  s.Account != string(account) {
 			continue
 		}
+		pass = s.Password
 		b.Eval(fmt.Sprintf("termopen('ssh %s -p %d')",s.Account, s.Port),&jobid)
 	}
 	err = b.Execute()
-	neovim.EchoErrStack(err)
+	// try to send password
+	for i := 0; i < 100 ; i++ {
+		time.Sleep(time.Millisecond * 100)
+		line, e := nvm.CurrentLine()
+		if e != nil {
+			neovim.EchoErrStack(e)
+			return
+		}
+		if strings.Contains(string(line),"#") || strings.Contains(string(line),"$"){
+			e = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,"ls -al\n"),nil)
+			neovim.EchoErrStack(e)
+			return
+		}
+		if strings.Contains(string(line),"password:") {
+			e = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,pass + "\n"),nil)
+			neovim.EchoErrStack(e)
+			return
+		}
+	}
 }
