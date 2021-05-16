@@ -25,6 +25,7 @@ func ToggleSsh(nvm *nvim.Nvim){
 	neovim.EchoErrStack(err)
 }
 
+// todo: send text to ssh job with chansend()
 func SshConnect(nvm *nvim.Nvim){
 	servers := config.Conf.Servers
 	var account []byte
@@ -34,15 +35,13 @@ func SshConnect(nvm *nvim.Nvim){
 		neovim.EchoErrStack(err)
 		return
 	}
-	neovim.Echomsg("before")
-	neovim.Echomsg(string(account))
-	neovim.Echomsg(len(account))
+	jobid := 0
 	b.Exec("40split term",false,nil)
 	for _, s := range servers {
 		if  s.Account != string(account) {
 			continue
 		}
-		b.Eval(fmt.Sprintf("termopen('ssh %s -p %d')",s.Account, s.Port),nil)
+		b.Eval(fmt.Sprintf("termopen('ssh %s -p %d')",s.Account, s.Port),&jobid)
 	}
 	err = b.Execute()
 	neovim.EchoErrStack(err)
