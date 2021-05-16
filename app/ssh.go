@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/beardnick/mynvim/component"
 	"github.com/beardnick/mynvim/config"
@@ -66,17 +67,18 @@ func SshConnect(nvm *nvim.Nvim){
 	}
 	err = b.Execute()
 	// try to send password
-	var line []byte
+	var line [][]byte
 	for i := 0; i < 100 ; i++ {
 		time.Sleep(time.Millisecond * 100)
-		line, err = nvm.CurrentLine()
+		err = nvm.Eval("getline(line('.'),line('$'))",&line)
 		if err != nil {
 			break
 		}
-		if strings.Contains(string(line),"#") || strings.Contains(string(line),"$"){
+		content := bytes.Join(line,[]byte{})
+		if strings.Contains(string(content),"#") || strings.Contains(string(content),"$"){
 			break
 		}
-		if strings.Contains(string(line),"password:") {
+		if strings.Contains(string(content),"password:") {
 			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,pass + "\n"),nil)
 			break
 		}
