@@ -32,7 +32,7 @@ call remote#host#RegisterPlugin('mynvim', '0', [
 \ {'type': 'command', 'name': 'PluginDir', 'sync': 0, 'opts': {'nargs': '+'}},
 \ {'type': 'command', 'name': 'PluginInstall', 'sync': 0, 'opts': {'nargs': '0'}},
 \ {'type': 'command', 'name': 'Push', 'sync': 0, 'opts': {'nargs': '+'}},
-\ {'type': 'command', 'name': 'Tree', 'sync': 0, 'opts': {}},
+\ {'type': 'command', 'name': 'Ssh', 'sync': 0, 'opts': {}},
 \ {'type': 'function', 'name': 'PushBuf', 'sync': 1, 'opts': {}},
 \ {'type': 'function', 'name': 'ToggleContainer', 'sync': 1, 'opts': {}},
 \ ])

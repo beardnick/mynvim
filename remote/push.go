@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/beardnick/mynvim/check"
 	"github.com/beardnick/mynvim/global"
+	"github.com/beardnick/mynvim/myfile"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -45,7 +46,7 @@ func Plugin(nvm *nvim.Nvim, args []string) {
 
 // todo: 进度条
 func PluginInstall(nvm *nvim.Nvim) {
-	err := EnsurePath(GetPluginDir())
+	err := myfile.EnsureDir(GetPluginDir())
 	if err != nil {
 		neovim.Echomsg(err)
 		return
@@ -198,15 +199,6 @@ func loadPlugin(nvm *nvim.Nvim, fullName string) (err error) {
 	}
 	all := append(plugins, afters...)
 	err = nvm.Command(fmt.Sprintf("source %s", strings.Join(all, " ")))
-	return
-}
-
-func EnsurePath(path string) (err error) {
-	_, err = os.Stat(path)
-	if errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(path, os.ModePerm)
-		return
-	}
 	return
 }
 
