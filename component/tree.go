@@ -41,10 +41,12 @@ func (c CommonTree) Show(nvm *nvim.Nvim) (err error) {
 	out := bytes.Split([]byte(data), []byte("\n"))
 	b := nvm.NewBatch()
 	var buffer nvim.Buffer
-	b.Exec("20vsplit tree",false,nil)
+	b.Exec("30vsplit tree",false,nil)
 	b.Exec("setlocal nonumber",false,nil)
 	b.CurrentBuffer(&buffer)
 	b.SetBufferLines(buffer,0,len(out),false,out)
+	b.SetBufferKeyMap(buffer,"n","q","<C-U>:q!<CR>", map[string]bool{"noremap":true,"silent":true})
+	b.SetBufferKeyMap(buffer,"n","<CR>","<C-U>:SshConnect<CR>", map[string]bool{"noremap":true,"silent":true})
 	b.Exec("setlocal nomodifiable",false,nil)
 	err = b.Execute()
 	return

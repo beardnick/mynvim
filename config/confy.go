@@ -11,6 +11,7 @@ import (
 type SshServer struct {
 	Account string
 	Password string
+	Port int
 }
 
 type Config struct {
