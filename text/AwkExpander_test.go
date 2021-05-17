@@ -119,6 +119,39 @@ func TestExpend(t *testing.T) {
 			wantExpended: "a\n\n,\nb\n\n,\nc\n\n,\n",
 			wantErr:      false,
 		},
+		{
+			name: "has \"",
+			args: args{
+				lines: "a\n>>>\n" + `"{{$1}}" "{{$1}}"`,
+			},
+			wantExpended: `"a" "a"` + "\n",
+			wantErr:      false,
+		},
+		{
+			name: "has \" 2",
+			// 这是一个错误示范，不应该在{{}}中使用""包裹变量的
+			args: args{
+				lines: "a\n>>>\n" + `{{"$1"}}`,
+			},
+			wantExpended: `$1` + "\n",
+			wantErr:      false,
+		},
+		{
+			name: "test inner function",
+			args: args{
+				lines: "abc\n>>>\n" + `{{length($1)}}`,
+			},
+			wantExpended: `3` + "\n",
+			wantErr:      false,
+		},
+		{
+			name: "test inner function 2",
+			args: args{
+				lines: "abc\n>>>\n" + `{{length($1)}} {{toupper($1)}}`,
+			},
+			wantExpended: `3 ABC` + "\n",
+			wantErr:      false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -129,6 +162,39 @@ func TestExpend(t *testing.T) {
 			}
 			if gotExpended != tt.wantExpended {
 				t.Errorf("Expend() gotExpended = %v, want %v", gotExpended, tt.wantExpended)
+			}
+		})
+	}
+}
+
+func Test_parseTemplate(t *testing.T) {
+	type args struct {
+		t string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "has \"",
+			args: args{
+				t: `"{{$1}}" "{{$1}}"`,
+			},
+			want: `\""$1"\" \""$1"\"`,
+		},
+		{
+			name: "inner content",
+			args: args{
+				t: `{{"test" "$1"}}`,
+			},
+			want: `""test" "$1""`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseTemplate(tt.args.t); got != tt.want {
+				t.Errorf("parseTemplate() = %v, want %v", got, tt.want)
 			}
 		})
 	}

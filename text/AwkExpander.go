@@ -103,10 +103,11 @@ func parseTemplate(t string) string {
 		`{{`, `"`,
 		`}}`, `"`,
 	)
-	archIndex := arch.FindAllStringIndex(t, -1)
+	//archIndex := arch.FindAllStringIndex(t, -1)
 	for i := 0; i < len(archs); i++ {
 		s := r.Replace(archs[i])
-		b, e := archIndex[i][0], archIndex[i][1]
+		firstIndex := arch.FindStringIndex(t)
+		b, e := firstIndex[0], firstIndex[1]
 		t = t[:b] + s + t[e:]
 	}
 	return t
