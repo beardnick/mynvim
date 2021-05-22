@@ -2,8 +2,9 @@ package component
 
 import (
 	"bytes"
-	"github.com/neovim/go-client/nvim"
 	"strings"
+
+	"github.com/neovim/go-client/nvim"
 )
 
 //func Tree(nvm *nvim.Nvim, args []string) {
@@ -44,6 +45,7 @@ func (c CommonTree) Show(nvm *nvim.Nvim) (err error) {
 	if err != nil {
 		return
 	}
+	b.Command("autocmd WinClosed * :silent qa!")
 	b.Command("vsplit")
 	b.Command("wincmd H")
 	b.SetCurrentBuffer(buffer)

@@ -3,25 +3,25 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/beardnick/mynvim/component"
 	"github.com/beardnick/mynvim/config"
 	"github.com/beardnick/mynvim/neovim"
 	"github.com/neovim/go-client/nvim"
-	"strings"
-	"time"
 )
 
-
-func ToggleSsh(nvm *nvim.Nvim){
+func ToggleSsh(nvm *nvim.Nvim) {
 	servers := config.Conf.Servers
 	var accounts []string
 	for _, server := range servers {
 		accounts = append(accounts, server.Account)
 	}
 	data := component.CommonTreeData{
-		Data:     "ssh",
-		Nodes:    accounts,
-		Children: nil,
+		Data:       "ssh",
+		Nodes:      accounts,
+		Children:   nil,
 		NodeAction: ":<C-U>SshConnect<CR>",
 	}
 	tree := component.NewCommonTree(data)
@@ -29,7 +29,7 @@ func ToggleSsh(nvm *nvim.Nvim){
 	neovim.EchoErrStack(err)
 }
 
-func SshConnect(nvm *nvim.Nvim){
+func SshConnect(nvm *nvim.Nvim) {
 	servers := config.Conf.Servers
 	var account []byte
 	b := nvm.NewBatch()
@@ -59,31 +59,31 @@ func SshConnect(nvm *nvim.Nvim){
 	b.SetWindowHeight(win, 30)
 	pass := ""
 	for _, s := range servers {
-		if  s.Account != string(account) {
+		if s.Account != string(account) {
 			continue
 		}
 		pass = s.Password
-		b.Eval(fmt.Sprintf("termopen('ssh %s -p %d')",s.Account, s.Port),&jobid)
+		b.Eval(fmt.Sprintf("termopen('ssh %s -p %d')", s.Account, s.Port), &jobid)
 	}
 	err = b.Execute()
 	// try to send password
 	var line [][]byte
-	for i := 0; i < 100 ; i++ {
+	for i := 0; i < 100; i++ {
 		time.Sleep(time.Millisecond * 100)
-		err = nvm.Eval("getline(line('.'),line('$'))",&line)
+		err = nvm.Eval("getline(line('.'),line('$'))", &line)
 		if err != nil {
 			break
 		}
-		content := bytes.Join(line,[]byte{})
-		if strings.Contains(string(content),"#") || strings.Contains(string(content),"$"){
+		content := bytes.Join(line, []byte{})
+		if strings.Contains(string(content), "#") || strings.Contains(string(content), "$") {
 			break
 		}
-		if strings.Contains(string(content),"password:") {
-			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")",jobid,pass + "\n"),nil)
+		if strings.Contains(string(content), "password:") {
+			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")", jobid, pass+"\n"), nil)
 			break
 		}
 	}
-	if err !=nil {
+	if err != nil {
 		neovim.EchoErrStack(err)
 		return
 	}
