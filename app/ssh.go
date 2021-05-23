@@ -40,24 +40,12 @@ func SshConnect(nvm *nvim.Nvim) {
 	}
 	jobid := 0
 
-	buffer, err := nvm.CreateBuffer(false, false)
-	if err != nil {
-		neovim.EchoErrStack(err)
-		return
-	}
 	// todo 使用wincontainer来统一布局
-	b.Command("split")
-	b.Command("wincmd J")
-	b.SetCurrentBuffer(buffer)
-
-	var win nvim.Window
-	b.CurrentWindow(&win)
-	err = b.Execute()
+	_,err = component.BottomBar(nvm,20)
 	if err != nil {
 		neovim.EchoErrStack(err)
 		return
 	}
-	b.SetWindowHeight(win, 30)
 	pass := ""
 	for _, s := range servers {
 		if s.Account != string(account) {
