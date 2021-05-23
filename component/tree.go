@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/neovim/go-client/nvim"
 	"strings"
+	"fmt"
 )
 
 //func Tree(nvm *nvim.Nvim, args []string) {
@@ -47,6 +48,7 @@ func (c CommonTree) Show(nvm *nvim.Nvim) (err error) {
 	b.Command("vsplit")
 	b.Command("wincmd H")
 	b.SetCurrentBuffer(buffer)
+	b.Command(fmt.Sprintf("autocmd QuitPre * %dbwipeout!",buffer))
 	b.Command("setlocal nonumber")
 	b.Command("setlocal nowrap")
 	b.SetBufferLines(buffer, 0, len(out), false, out)
