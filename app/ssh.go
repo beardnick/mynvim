@@ -12,9 +12,9 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-func ToggleSsh(nvm *nvim.Nvim) {
+func ToggleSSH(nvm *nvim.Nvim) {
 	servers := config.Conf.Servers
-	var accounts []string
+	accounts := make([]string, 0, len(servers))
 	for _, server := range servers {
 		accounts = append(accounts, server.Account)
 	}
@@ -67,26 +67,35 @@ func SshConnect(nvm *nvim.Nvim) {
 	}
 	err = b.Execute()
 	// try to send password
-	var line [][]byte
-	for i := 0; i < 100; i++ {
-		time.Sleep(time.Millisecond * 100)
-		err = nvm.Eval("getline(line('.'),line('$'))", &line)
-		if err != nil {
-			break
-		}
-		content := bytes.Join(line, []byte{})
-		if strings.Contains(string(content), "#") || strings.Contains(string(content), "$") {
-			break
-		}
-		if strings.Contains(string(content), "password:") {
-			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")", jobid, pass+"\n"), nil)
-			break
-		}
-	}
+	err = trySendPassword(nvm, jobid, pass)
 	if err != nil {
 		neovim.EchoErrStack(err)
 		return
 	}
 	err = nvm.Command("normal I")
 	neovim.EchoErrStack(err)
+}
+
+func trySendPassword(nvm *nvim.Nvim, jobid int, passwd string) (err error) {
+	var line [][]byte
+	for i := 0; i < 100; i++ {
+		time.Sleep(time.Millisecond * 100)
+		err = nvm.Eval("getline(bufnr('%'),1,'$')", &line)
+		if err != nil {
+			return
+		}
+		content := bytes.Join(line, []byte{})
+		if strings.Contains(string(content), "#") || strings.Contains(string(content), "$") {
+			return
+		}
+		if strings.Contains(string(content), "yes") {
+			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")", jobid, "yes\n"), nil)
+			return
+		}
+		if strings.Contains(string(content), "password:") {
+			err = nvm.Eval(fmt.Sprintf("chansend(%d,\"%s\")", jobid, passwd+"\n"), nil)
+			return
+		}
+	}
+	return
 }
