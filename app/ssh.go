@@ -45,6 +45,7 @@ func SshConnect(nvm *nvim.Nvim) {
 		neovim.EchoErrStack(err)
 		return
 	}
+	// todo 使用wincontainer来统一布局
 	b.Command("split")
 	b.Command("wincmd J")
 	b.SetCurrentBuffer(buffer)
@@ -80,7 +81,7 @@ func trySendPassword(nvm *nvim.Nvim, jobid int, passwd string) (err error) {
 	var line [][]byte
 	for i := 0; i < 100; i++ {
 		time.Sleep(time.Millisecond * 100)
-		err = nvm.Eval("getline(bufnr('%'),1,'$')", &line)
+		err = nvm.Eval("getbufline(bufnr('%'),1,'$')", &line)
 		if err != nil {
 			return
 		}
